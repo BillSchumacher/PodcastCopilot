@@ -71,7 +71,7 @@ print("Calling Whisper to transcribe audio...\n")
 sound_file = AudioSegment.from_mp3(podcast_audio_file)
 audio_chunks = split_on_silence(sound_file, min_silence_len=1000, silence_thresh=-40 )
 count = len(audio_chunks)
-print("Audio split into " + str(count) + " audio chunks")
+print(f"Audio split into {count} audio chunks")
 
 # Call Whisper to transcribe audio
 model = whisper.load_model("base")
@@ -85,15 +85,15 @@ for i, chunk in enumerate(audio_chunks):
         result = model.transcribe(out_file)
         transcriptChunk = result["text"]
         print(transcriptChunk)
-        
-        # Append transcript in memory if you have sufficient memory
-        transcript += " " + transcriptChunk
 
-        # Alternatively, here's how to write the transcript to disk if you have memory constraints
-        #textfile = open("chunk{0}.txt".format(i), "w")
-        #textfile.write(transcript)
-        #textfile.close()
-        #print("Exported chunk{0}.txt".format(i))
+        # Append transcript in memory if you have sufficient memory
+        transcript += f" {transcriptChunk}"
+
+            # Alternatively, here's how to write the transcript to disk if you have memory constraints
+            #textfile = open("chunk{0}.txt".format(i), "w")
+            #textfile.write(transcript)
+            #textfile.close()
+            #print("Exported chunk{0}.txt".format(i))
 
 print("Transcript: \n")
 print(transcript)
@@ -108,7 +108,7 @@ model = ORTModelForCausalLM.from_pretrained(repo_id, provider="DmlExecutionProvi
 streamer = TextStreamer(tokenizer, skip_prompt=True)
 generate_text = InstructionTextGenerationPipeline(model=model, streamer=streamer, tokenizer=tokenizer, max_new_tokens=128, return_full_text=True, task="text-generation")
 hf_pipeline = HuggingFacePipeline(pipeline=generate_text)
-    
+
 dolly2_prompt = PromptTemplate(
     input_variables=["transcript"],
     template="Extract the guest name on the Beyond the Tech podcast from the following transcript.  Beyond the Tech is hosted by Kevin Scott and Christina Warren, so they will never be the guests.  \n\n Transcript: {transcript}\n\n Host name: Kevin Scott\n\n Guest name: "
@@ -126,7 +126,7 @@ print("\n")
 def bing_grounding(input_dict:dict) -> dict:
     print("Calling Bing Search API to get bio for guest...\n")
     search_term = input_dict["guest"]
-    print("Search term is " + search_term)
+    print(f"Search term is {search_term}")
 
     headers = {"Ocp-Apim-Subscription-Key": bing_subscription_key}
     params = {"q": search_term, "textDecorations": True, "textFormat": "HTML"}
@@ -137,7 +137,7 @@ def bing_grounding(input_dict:dict) -> dict:
 
     # Parse out a bio.  
     bio = search_results["webPages"]["value"][0]["snippet"]
-    
+
     print("Bio:\n")
     print(bio)
     print("\n")
@@ -243,7 +243,7 @@ print("\n")
 
 
 # Append "high-quality digital art" to the generated DALL-E prompt
-dalle_prompt = dalle_prompt + ", high-quality digital art"
+dalle_prompt = f"{dalle_prompt}, high-quality digital art"
 
 
 # Step 7 - Make a call to DALL-E model on the Azure OpenAI Service to generate an image 
@@ -254,7 +254,7 @@ client = ImageClient(dalle_endpoint, dalle_api_key, verbose=False) # change verb
 
 # Generate an image
 imageURL, postImage =  client.generateImage(dalle_prompt)
-print("Image URL: " + imageURL + "\n")
+print(f"Image URL: {imageURL}" + "\n")
 
 # Write image to file - this is optional if you would like to have a local copy of the image
 stream = BytesIO(postImage)
@@ -266,7 +266,7 @@ print("Image: saved to PostImage.jpg\n")
 
 
 # Append the podcast URL to the generated social media copy
-social_media_copy = social_media_copy + " " + podcast_url
+social_media_copy = f"{social_media_copy} {podcast_url}"
 
 
 # Step 8 - Call the LinkedIn Plugin for Copilots to do the post.
@@ -307,7 +307,7 @@ confirm = input("Do you want to post this to LinkedIn? (y/n): ")
 if confirm == "y":
     # Call a model with plugin support.
     response = requests.post(plugin_model_url, headers=headers, data=json.dumps(payload))
-    
+
     #print (type(response))
     print("Response:\n")
     print(response)
@@ -315,7 +315,7 @@ if confirm == "y":
     print(response.headers)
     print("Json:\n")
     print(response.json())
-    
+
     response_dict = response.json()
     print(response_dict["choices"][0]["messages"][-1]["content"])
     
