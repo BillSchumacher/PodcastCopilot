@@ -21,7 +21,7 @@ class ImageClient:
         reqURL = requests.models.PreparedRequest()
         params = {'api-version':self.api_version}
         #the full endpoint will look something like this https://YOUR_AOAI_RESOURCE_NAME.openai.azure.com/dalle/text-to-image
-        reqURL.prepare_url(self.endpoint + "dalle/text-to-image", params) 
+        reqURL.prepare_url(f"{self.endpoint}dalle/text-to-image", params)
         if self.verbose:
             print("Sending a POST call to the following URL: {URL}".format(URL=reqURL.url))
 
@@ -79,9 +79,7 @@ class ImageClient:
 
 
     def getImage(self, contentUrl):
-        # Download the images from the given URL
-        r = requests.get(contentUrl)
-        return r
+        return requests.get(contentUrl)
 
 
     def generateImage(self, prompt):
@@ -102,7 +100,7 @@ class ImageClient:
         status = "not running"
         while status != "Succeeded":
             if self.verbose:
-                print('retry after: ' + retry_after)
+                print(f'retry after: {retry_after}')
             time.sleep(int(retry_after))
             r = self.getImageResults(operation_location)
             # print(r.status_code)
@@ -112,7 +110,7 @@ class ImageClient:
             # print(status)
             if status == "Failed":
                 return "-1"
-        
+
         contentUrl = r.json()['result']['contentUrl']
         image = self.getImage(contentUrl)
         return contentUrl, image.content
